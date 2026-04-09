@@ -1,12 +1,21 @@
 import { useState } from "react";
-import { useActiveAccount } from "thirdweb/react";
-import { ImagePlus, Upload, Loader2, CheckCircle2 } from "lucide-react";
+import { useActiveAccount, useActiveWalletChain, useSendTransaction } from "thirdweb/react";
+import { getContract } from "thirdweb";
+import { mintTo } from "thirdweb/extensions/erc721";
+import { client } from "../client";
+import { ImagePlus, Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function MintNFT() {
   const account = useActiveAccount();
-  const [isMinting, setIsMinting] = useState(false);
+  const chain = useActiveWalletChain();
+  const { mutateAsync: sendTransaction, isPending: isMinting } = useSendTransaction();
+  
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
   if (!account) {
     return (
@@ -23,29 +32,69 @@ export default function MintNFT() {
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const url = URL.createObjectURL(selectedFile);
       setPreviewUrl(url);
     }
   };
 
-  const handleMint = (e: React.FormEvent) => {
+  const handleMint = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsMinting(true);
-    
-    // Simulate minting process
-    setTimeout(() => {
-      setIsMinting(false);
+    setError(null);
+    setIsSuccess(false);
+
+    if (!file) {
+      setError("Please select an image");
+      return;
+    }
+
+    if (!chain) {
+      setError("Please connect your wallet to a network");
+      return;
+    }
+
+    const contractAddress = import.meta.env.VITE_NFT_CONTRACT_ADDRESS;
+    if (!contractAddress) {
+      setError("NFT Contract Address is not configured. Please set VITE_NFT_CONTRACT_ADDRESS in your environment variables.");
+      return;
+    }
+
+    try {
+      const contract = getContract({
+        client,
+        chain,
+        address: contractAddress,
+      });
+
+      const transaction = mintTo({
+        contract,
+        to: account.address,
+        nft: {
+          name,
+          description,
+          image: file,
+        },
+      });
+
+      await sendTransaction(transaction);
+      
       setIsSuccess(true);
       
-      // Reset success state after 3 seconds
+      // Reset after 3 seconds
       setTimeout(() => {
         setIsSuccess(false);
         setPreviewUrl(null);
+        setFile(null);
+        setName("");
+        setDescription("");
         (document.getElementById('mint-form') as HTMLFormElement)?.reset();
       }, 3000);
-    }, 2500);
+    } catch (err: any) {
+      console.error("Minting failed:", err);
+      setError(err.message || "Failed to mint NFT. Make sure you have permission and enough funds.");
+    }
   };
 
   return (
@@ -58,6 +107,13 @@ export default function MintNFT() {
       <div className="bg-[#151515] border border-white/10 rounded-2xl p-6 md:p-8">
         <form id="mint-form" onSubmit={handleMint} className="space-y-6">
           
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-500">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+
           {/* Image Upload */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">Asset Image</label>
@@ -92,6 +148,8 @@ export default function MintNFT() {
               <input 
                 id="name"
                 type="text" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Genesis Pass #001" 
                 className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 transition-colors"
                 required
@@ -102,6 +160,8 @@ export default function MintNFT() {
               <label htmlFor="description" className="block text-sm font-medium text-gray-300">Description</label>
               <textarea 
                 id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe your digital asset..." 
                 rows={4}
                 className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 transition-colors resize-none"

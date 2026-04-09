@@ -1,7 +1,7 @@
 import { createThirdwebClient } from "thirdweb";
 
-// Replace this with your client ID from the thirdweb dashboard
-const clientId = "b0857771746f363c4613204907921a22"; // Public dummy/test client ID or user should replace
+// Use environment variable for client ID, fallback to dummy for preview if not set
+const clientId = import.meta.env.VITE_THIRDWEB_CLIENT_ID || "b0857771746f363c4613204907921a22";
 
 export const client = createThirdwebClient({
   clientId: clientId,

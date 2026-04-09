@@ -126,10 +126,10 @@ async function startServer() {
     const id = crypto.randomUUID();
     const interestRate = 5.5; // Fixed for prototype
     
-    db.prepare(\`
+    db.prepare(`
       INSERT INTO loans (id, user_id, amount, collateral_nft_id, status, interest_rate, duration_days)
       VALUES (?, ?, ?, ?, 'pending', ?, ?)
-    \`).run(id, user.id, amount, collateralNftId, interestRate, durationDays);
+    `).run(id, user.id, amount, collateralNftId, interestRate, durationDays);
 
     res.json({ success: true, loanId: id });
   });
@@ -158,7 +158,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(\`Server running on http://localhost:\${PORT}\`);
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
