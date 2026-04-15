@@ -20,11 +20,11 @@ export default function MintNFT() {
   if (!account) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">
-          <ImagePlus className="w-8 h-8 text-gray-400" />
+        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-orange-500/10 border border-white/10">
+          <ImagePlus className="w-10 h-10 text-zinc-400" />
         </div>
-        <h1 className="text-3xl font-bold mb-4 tracking-tight">Mint NFT</h1>
-        <p className="text-gray-400 max-w-md mb-8">
+        <h1 className="text-4xl font-bold mb-4 tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Mint NFT</h1>
+        <p className="text-zinc-400 max-w-md mb-8 text-lg">
           Connect your wallet to create and mint your own digital assets directly to the blockchain.
         </p>
       </div>
@@ -101,10 +101,10 @@ export default function MintNFT() {
     <div className="space-y-8 max-w-3xl">
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Mint NFT</h1>
-        <p className="text-gray-400">Create a new digital asset and add it to your collection.</p>
+        <p className="text-zinc-400">Create a new digital asset and add it to your collection.</p>
       </div>
 
-      <div className="bg-[#151515] border border-white/10 rounded-2xl p-6 md:p-8">
+      <div className="bg-zinc-900/50 border border-white/5 backdrop-blur-sm rounded-2xl p-6 md:p-8">
         <form id="mint-form" onSubmit={handleMint} className="space-y-6">
           
           {error && (
@@ -116,7 +116,7 @@ export default function MintNFT() {
 
           {/* Image Upload */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">Asset Image</label>
+            <label className="block text-sm font-medium text-zinc-300">Asset Image</label>
             <div className="relative group">
               <input 
                 type="file" 
@@ -125,16 +125,16 @@ export default function MintNFT() {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 required
               />
-              <div className={`w-full aspect-video md:aspect-[21/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${previewUrl ? 'border-orange-500/50 bg-orange-500/5' : 'border-white/10 bg-white/5 group-hover:border-white/20 group-hover:bg-white/10'}`}>
+              <div className={`w-full aspect-video md:aspect-[21/9] rounded-xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-colors ${previewUrl ? 'border-orange-500/50 bg-orange-500/5' : 'border-white/5 bg-white/5 group-hover:border-white/20 group-hover:bg-white/10'}`}>
                 {previewUrl ? (
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
                   <div className="text-center p-6">
                     <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Upload className="w-6 h-6 text-gray-400" />
+                      <Upload className="w-6 h-6 text-zinc-400" />
                     </div>
                     <p className="font-medium mb-1">Click or drag image to upload</p>
-                    <p className="text-sm text-gray-500">Supports JPG, PNG, GIF, WEBP up to 10MB</p>
+                    <p className="text-sm text-zinc-500">Supports JPG, PNG, GIF, WEBP up to 10MB</p>
                   </div>
                 )}
               </div>
@@ -144,27 +144,27 @@ export default function MintNFT() {
           {/* Details */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300">Name</label>
+              <label htmlFor="name" className="block text-sm font-medium text-zinc-300">Name</label>
               <input 
                 id="name"
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Genesis Pass #001" 
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 transition-colors"
+                className="w-full bg-zinc-950/50 border border-white/5 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 transition-colors"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-300">Description</label>
+              <label htmlFor="description" className="block text-sm font-medium text-zinc-300">Description</label>
               <textarea 
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe your digital asset..." 
                 rows={4}
-                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 transition-colors resize-none"
+                className="w-full bg-zinc-950/50 border border-white/5 rounded-xl px-4 py-3 outline-none focus:border-orange-500/50 transition-colors resize-none"
                 required
               />
             </div>

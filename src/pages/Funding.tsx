@@ -1,8 +1,34 @@
 import { useActiveAccount } from "thirdweb/react";
-import { Banknote, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import { Banknote, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export default function Funding() {
   const account = useActiveAccount();
+  const [isApplying, setIsApplying] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleApply = async () => {
+    if (!account) return;
+    
+    setIsApplying(true);
+    setApplicationStatus("idle");
+    
+    try {
+      // Request a signature from the user to verify their intent to apply
+      const message = `I am applying for instant funding from NovaFi.\n\nWallet: ${account.address}\nTimestamp: ${Date.now()}`;
+      await account.signMessage({ message });
+      
+      // Simulate backend processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setApplicationStatus("success");
+    } catch (error) {
+      console.error("Application failed:", error);
+      setApplicationStatus("error");
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   if (!account) {
     return (
@@ -36,10 +62,27 @@ export default function Funding() {
             <h2 className="text-2xl font-semibold mb-2">Up to $50,000.00</h2>
             <p className="text-sm text-gray-400">Based on your wallet activity and connected assets.</p>
           </div>
-          <button className="px-6 py-3 bg-white text-black font-medium rounded-full hover:bg-gray-100 transition-colors whitespace-nowrap">
-            Apply Now
+          <button 
+            onClick={handleApply}
+            disabled={isApplying || applicationStatus === "success"}
+            className={`px-6 py-3 font-medium rounded-full transition-colors whitespace-nowrap flex items-center gap-2 ${
+              applicationStatus === "success" 
+                ? "bg-green-500 text-white" 
+                : "bg-white text-black hover:bg-gray-100 disabled:opacity-50"
+            }`}
+          >
+            {isApplying ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+            ) : applicationStatus === "success" ? (
+              <><CheckCircle2 className="w-4 h-4" /> Application Submitted</>
+            ) : (
+              "Apply Now"
+            )}
           </button>
         </div>
+        {applicationStatus === "error" && (
+          <p className="text-red-500 text-sm mt-4">Application failed or signature rejected. Please try again.</p>
+        )}
       </div>
 
       <h2 className="text-xl font-semibold pt-4">Available Offers</h2>

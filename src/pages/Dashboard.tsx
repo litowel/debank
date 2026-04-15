@@ -1,17 +1,42 @@
-import { useActiveAccount } from "thirdweb/react";
-import { ArrowUpRight, ArrowDownRight, Activity, Wallet, CreditCard } from "lucide-react";
+import { useActiveAccount, useActiveWalletChain, useWalletBalance, useReadContract } from "thirdweb/react";
+import { ArrowUpRight, ArrowDownRight, Activity, Wallet, CreditCard, Image as ImageIcon } from "lucide-react";
+import { getContract } from "thirdweb";
+import { getOwnedNFTs } from "thirdweb/extensions/erc721";
+import { client } from "../client";
 
 export default function Dashboard() {
   const account = useActiveAccount();
+  const chain = useActiveWalletChain();
+
+  const { data: balance, isLoading: isBalanceLoading } = useWalletBalance({
+    client,
+    chain,
+    address: account?.address,
+  });
+
+  const contractAddress = import.meta.env.VITE_NFT_CONTRACT_ADDRESS;
+  const contract = contractAddress && chain ? getContract({
+    client,
+    chain,
+    address: contractAddress,
+  }) : undefined;
+
+  const { data: nfts, isLoading: isNftsLoading } = useReadContract(getOwnedNFTs, {
+    contract: contract as any,
+    owner: account?.address as string,
+    queryOptions: {
+      enabled: !!contract && !!account?.address,
+    }
+  });
 
   if (!account) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">
-          <Wallet className="w-8 h-8 text-gray-400" />
+        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-orange-500/10 border border-white/10">
+          <Wallet className="w-10 h-10 text-zinc-400" />
         </div>
-        <h1 className="text-3xl font-bold mb-4 tracking-tight">Welcome to DeFi SuperApp</h1>
-        <p className="text-gray-400 max-w-md mb-8">
+        <h1 className="text-4xl font-bold mb-4 tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Welcome to NovaFi</h1>
+        <p className="text-zinc-400 max-w-md mb-8 text-lg">
           Connect your wallet to access payments, swaps, instant funding, and NFT-collateral lending.
         </p>
       </div>
@@ -22,73 +47,89 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard</h1>
-        <p className="text-gray-400">Welcome back, {account.address.slice(0, 6)}...{account.address.slice(-4)}</p>
+        <p className="text-zinc-400">Welcome back, {account.address.slice(0, 6)}...{account.address.slice(-4)}</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#151515] border border-white/10 rounded-2xl p-6">
+        <div className="bg-zinc-900/50 border border-white/5 backdrop-blur-sm rounded-2xl p-6 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-400 font-medium">Total Balance</h3>
-            <Wallet className="w-5 h-5 text-gray-500" />
+            <h3 className="text-zinc-400 font-medium">Wallet Balance</h3>
+            <div className="p-2 bg-orange-500/10 rounded-lg">
+              <Wallet className="w-5 h-5 text-orange-500" />
+            </div>
           </div>
-          <div className="text-4xl font-light tracking-tight mb-2">$15,420.50</div>
-          <div className="flex items-center text-sm text-green-500">
-            <ArrowUpRight className="w-4 h-4 mr-1" />
-            <span>+2.4% this week</span>
+          <div className="text-4xl font-light tracking-tight mb-2">
+            {isBalanceLoading ? "..." : `${Number(balance?.displayValue || 0).toFixed(4)} ${balance?.symbol || ''}`}
+          </div>
+          <div className="flex items-center text-sm text-zinc-400">
+            <span>On {chain?.name || 'Unknown Network'}</span>
           </div>
         </div>
 
-        <div className="bg-[#151515] border border-white/10 rounded-2xl p-6">
+        <div className="bg-zinc-900/50 border border-white/5 backdrop-blur-sm rounded-2xl p-6 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-400 font-medium">Active Loans</h3>
-            <CreditCard className="w-5 h-5 text-gray-500" />
+            <h3 className="text-zinc-400 font-medium">Owned NFTs</h3>
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <ImageIcon className="w-5 h-5 text-blue-500" />
+            </div>
           </div>
-          <div className="text-4xl font-light tracking-tight mb-2">$2,500.00</div>
+          <div className="text-4xl font-light tracking-tight mb-2">
+            {isNftsLoading ? "..." : (nfts?.length || 0)}
+          </div>
           <div className="flex items-center text-sm text-orange-500">
-            <span>Next payment: $250 in 5 days</span>
+            <span>Available for collateral</span>
           </div>
         </div>
 
-        <div className="bg-[#151515] border border-white/10 rounded-2xl p-6">
+        <div className="bg-zinc-900/50 border border-white/5 backdrop-blur-sm rounded-2xl p-6 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-400 font-medium">Monthly Volume</h3>
-            <Activity className="w-5 h-5 text-gray-500" />
+            <h3 className="text-zinc-400 font-medium">Active Loans</h3>
+            <div className="p-2 bg-green-500/10 rounded-lg">
+              <CreditCard className="w-5 h-5 text-green-500" />
+            </div>
           </div>
-          <div className="text-4xl font-light tracking-tight mb-2">$8,240.00</div>
-          <div className="flex items-center text-sm text-gray-400">
-            <span>Across 12 transactions</span>
+          <div className="text-4xl font-light tracking-tight mb-2">
+            $0.00
+          </div>
+          <div className="flex items-center text-sm text-zinc-400">
+            <span>No active loans</span>
           </div>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-[#151515] border border-white/10 rounded-2xl overflow-hidden">
-        <div className="p-6 border-b border-white/10">
-          <h2 className="text-xl font-semibold">Recent Activity</h2>
+      <div className="bg-zinc-900/50 border border-white/5 backdrop-blur-sm rounded-2xl overflow-hidden">
+        <div className="p-6 border-b border-white/5">
+          <h2 className="text-xl font-semibold">Your NFTs</h2>
         </div>
-        <div className="divide-y divide-white/5">
-          {[
-            { type: 'Received', amount: '+$500.00', asset: 'USDC', date: 'Today, 2:45 PM', icon: ArrowDownRight, color: 'text-green-500' },
-            { type: 'Swapped', amount: '-1.5 ETH', asset: 'ETH → USDC', date: 'Yesterday, 10:20 AM', icon: ArrowRightLeft, color: 'text-blue-500' },
-            { type: 'Loan Repayment', amount: '-$250.00', asset: 'USDC', date: 'Oct 12, 2023', icon: ArrowUpRight, color: 'text-gray-400' },
-          ].map((tx, i) => (
-            <div key={i} className="p-4 sm:p-6 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                  <tx.icon className={`w-5 h-5 ${tx.color}`} />
+        <div className="p-6">
+          {isNftsLoading ? (
+            <div className="text-center text-zinc-500">Loading NFTs...</div>
+          ) : nfts && nfts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {nfts.map((nft) => (
+                <div key={nft.id.toString()} className="bg-white/5 rounded-xl overflow-hidden border border-white/5 hover:border-orange-500/50 transition-colors group">
+                  <div className="aspect-square overflow-hidden">
+                    {nft.metadata.image ? (
+                      <img src={nft.metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')} alt={nft.metadata.name || `NFT #${nft.id}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-zinc-500" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-zinc-950/50 backdrop-blur-md">
+                    <div className="font-medium text-sm truncate">{nft.metadata.name || `Token #${nft.id}`}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-medium">{tx.type}</div>
-                  <div className="text-sm text-gray-400">{tx.date}</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-medium">{tx.amount}</div>
-                <div className="text-sm text-gray-400">{tx.asset}</div>
-              </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="text-center text-zinc-500 py-8">
+              No NFTs found in this collection.
+            </div>
+          )}
         </div>
       </div>
     </div>
